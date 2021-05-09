@@ -1,4 +1,3 @@
-package org.lyghtning
 package utils
 
 import akka.http.scaladsl.Http
@@ -13,9 +12,9 @@ import utils.ColumnUtils.{FloatType, StringType}
 
 import scala.concurrent.duration.DurationInt
 import scala.language.postfixOps
-import scala.util.{Success, Try}
+import scala.util.Try
 
-object DataUtils {
+object Data {
 
   val HOSTNAME = "www.settrade.com"
   val REALTIME_PATH = "/C04_01_stock_quote_p1.jsp"
@@ -40,7 +39,7 @@ object DataUtils {
     val responseFuture = Http().singleRequest(request)
     for {
       response <- responseFuture
-        strict <- response.entity.toStrict(1 millis)
+        strict <- response.entity.toStrict(1 second)
     } yield {
       strict.data.decodeString("UTF-8")
     }
@@ -70,15 +69,20 @@ object DataUtils {
         val table = t.get(tableIdx)
         val columnNames = table.select("th").eachText().asScala.toSeq
         val rawRows = table.select("tr")
-        val rows = Range(0, rawRows.size).foldLeft(Seq.empty[Seq[String]]) { case (rSeq, idx) => rSeq :+ rawRows
+        val rows = Range(0, rawRows.size).foldLeft(Seq.empty[Seq[String]]) { case (rSeq, idx) =>
+          val row = rawRows
             .get(idx)
             .select("td")
             .eachText()
             .asScala
             .toSeq
-          }
+          if (row.nonEmpty) rSeq :+ row else rSeq
+        }
         tSeq :+ Table(ColumnUtils.getColumns(Some(columnNames), rows, Map("Date" -> StringType), FloatType))
       }
     }
+  }
+
+  def transformRealtimeMap(map: Map[String, Any]) = {
   }
 }

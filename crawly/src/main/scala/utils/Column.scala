@@ -1,4 +1,3 @@
-package org.lyghtning
 package utils
 
 case class Column[T](header: Option[String] = None, values: Seq[T]) {

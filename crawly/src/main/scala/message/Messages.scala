@@ -1,17 +1,17 @@
-package org.lyghtning
 package message
 
 import java.time.ZonedDateTime
 
 object Messages {
 
-  case class GetProperties(stock: String)
-  case class GetDailyInfo(stock: String)
-  case class GetRealtimeInfo(stock: String)
-  case class GetFinancial(stock: String)
+  case object GetStockList
+  case class GetProperties(symbol: String)
+  case class GetDailyInfo(symbol: String)
+  case class GetRealtimeInfo(symbol: String)
+  case class GetFinancial(symbol: String)
 
   case class StockProperties(
-    stock: String,
+    symbol: String,
     business: String,
     industry: String,
     ipoDate: ZonedDateTime,
@@ -19,7 +19,7 @@ object Messages {
     freeFloatP: Float
   )
   case class StockDailyInfo(
-    stock: String,
+    symbol: String,
     open: Float,
     close: Float,
     delta: Float,
@@ -29,6 +29,15 @@ object Messages {
     volume: Long,
     value: Float
   )
-  case class StockRealtimeInfo(stock: String, timeStamp: ZonedDateTime, price: Float, volume: Long, value: Float)
+  case class StockRealtimeInfo(
+    symbol: String,
+    timeStamp: ZonedDateTime,
+    bid: Float,
+    offer: Float,
+    bidVolume: Long,
+    offerVolume: Long,
+    volume: Long,
+    value: Float
+  )
 
 }

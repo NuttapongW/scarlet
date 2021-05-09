@@ -1,11 +1,10 @@
-package org.lyghtning
 package actor
 
 import akka.actor.Actor
 import message.Messages.{GetDailyInfo, GetRealtimeInfo}
-import Bindings._
+import utils.Bindings._
 
-import utils.DataUtils._
+import utils.Data._
 
 import scala.language.postfixOps
 

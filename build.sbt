@@ -2,7 +2,6 @@ import Common._
 
 ThisBuild / organization := "org.lyghtning"
 ThisBuild / scalaVersion := Versions.Scala
-ThisBuild / idePackagePrefix := Some("org.lyghtning")
 
 lazy val commonDependencies = Seq(
   "org.scalatest" %% "scalatest" % Versions.ScalaTest % "test"

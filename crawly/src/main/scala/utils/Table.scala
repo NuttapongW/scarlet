@@ -1,7 +1,6 @@
-package org.lyghtning
 package utils
 
-class Table(data: Map[String, Column[Any]]) {
+class Table(val data: Map[String, Column[Any]]) {
   val records = data.foldLeft(-1) {
     case (records, (name, column)) => {
       assert(records < 0 || records == column.records, s"Column[${name}] size mismatched ${records} != ${column.records}")
