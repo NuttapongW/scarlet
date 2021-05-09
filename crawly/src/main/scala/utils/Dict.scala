@@ -1,6 +1,6 @@
 package utils
 
-object KeysDict {
+object Dict {
   val KEYS_DICT = Map(
     "Date" -> "date",
     "Open" -> "open",
@@ -10,7 +10,9 @@ object KeysDict {
     "High" -> "max",
     "Low" -> "min",
     "Volume (x1000)" -> "volume",
+    "Volume (Shares)" -> "volume",
     "Value (MB.)" -> "value",
+    "Value ('000 Baht)" -> "value",
     "Par Value (Baht)" -> "par",
     "Bid / Volume Bid" -> "bid",
     "Offer / Volume Offer" -> "offer"

@@ -56,7 +56,7 @@ object Data {
         .asScala
         .toSeq
       }.map {
-      case key :: value :: _ => (key, Try(value.asInstanceOf[Float]).getOrElse(value))
+      case key :: value :: _ => (Dict.KEYS_DICT.getOrElse(key, key), Try(value.asInstanceOf[Float]).getOrElse(value))
     }.toMap
 
   }
@@ -81,8 +81,5 @@ object Data {
         tSeq :+ Table(ColumnUtils.getColumns(Some(columnNames), rows, Map("Date" -> StringType), FloatType))
       }
     }
-  }
-
-  def transformRealtimeMap(map: Map[String, Any]) = {
   }
 }
