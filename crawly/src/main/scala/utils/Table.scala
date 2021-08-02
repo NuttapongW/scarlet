@@ -1,11 +1,10 @@
 package utils
 
 class Table(val data: Map[String, Column[Any]]) {
-  val records = data.foldLeft(-1) {
-    case (records, (name, column)) => {
+  val records: Int = data.foldLeft(-1) {
+    case (records, (name, column)) =>
       assert(records < 0 || records == column.records, s"Column[${name}] size mismatched ${records} != ${column.records}")
       column.records
-    }
   }
 }
 

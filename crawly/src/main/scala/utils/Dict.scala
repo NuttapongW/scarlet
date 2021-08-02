@@ -17,7 +17,4 @@ object Dict {
     "Bid / Volume Bid" -> "bid",
     "Offer / Volume Offer" -> "offer"
   )
-
-
-
 }
