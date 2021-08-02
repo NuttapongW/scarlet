@@ -11,7 +11,7 @@ class Table(val data: Map[String, Column[Any]]) {
 
 object Table {
   def apply(input: Seq[Column[Any]]): Table = {
-    val columns = input.zipWithIndex.map { case (col, idx) => col.header.getOrElse(s"column_${idx}")}
+    val columns = input.map(_.header)
     new Table(columns.zip(input).toMap)
   }
 }

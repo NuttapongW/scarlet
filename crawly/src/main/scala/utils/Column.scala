@@ -1,6 +1,6 @@
 package utils
 
-case class Column[T](header: Option[String] = None, values: Seq[T]) {
+case class Column[T](header: String, values: Seq[T]) {
   val records = values.size
 }
 
@@ -12,31 +12,29 @@ object ColumnUtils {
   final case object FloatType extends DType
   final case object StringType extends DType
 
-  def getTypedColumn(name: Option[String], values: Seq[String], dType: DType): Column[Any] = {
+  private[utils] def getTypedColumn(name: String, values: Seq[String], dType: DType): Column[Any] = {
      dType match {
-       case IntType => Column(name, values.asInstanceOf[Seq[Int]])
-       case LongType => Column(name, values.asInstanceOf[Seq[Long]])
-       case FloatType => Column(name, values.asInstanceOf[Seq[Float]])
-       case _ => Column(name, values)
+       case IntType => Column(name, values.map(cleanNumericString(_).toInt))
+       case LongType => Column(name, values.map(cleanNumericString(_).toLong))
+       case FloatType => Column(name, values.map(cleanNumericString(_).toFloat))
+       case StringType => Column(name, values)
+       case t: DType => throw new Exception(s"Unsupported type conversion ($t)")
      }
   }
 
+  private[utils] def cleanNumericString(num: String): String = num.trim.filterNot(_ == ',')
+
   def getColumns(
-    columnNames: Option[Seq[String]],
+    columnNames: Seq[String],
     rows: Seq[Seq[String]],
-    dTypes: Map[String, DType],
+    dTypes: Map[String, DType] = Map.empty,
     defaultType: DType = FloatType
   ): Seq[Column[Any]] = {
 
     val transposed = rows.transpose
-    columnNames match {
-      case Some(names) => {
-        assert(names.size == transposed.size)
-        names.zip(transposed).map {
-          case (name, seq) => getTypedColumn(Some(name), seq, dTypes.getOrElse(name, defaultType))
-        }
-      }
-      case _ => transposed.map(getTypedColumn(None, _, defaultType))
+    assert(columnNames.size == transposed.size)
+    columnNames.zip(transposed).map {
+          case (name, seq) => getTypedColumn(name, seq, dTypes.getOrElse(name, defaultType))
     }
   }
 }
