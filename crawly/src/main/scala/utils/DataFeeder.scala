@@ -7,24 +7,41 @@ import org.jsoup.Jsoup
 
 import scala.concurrent.Future
 import scala.jdk.CollectionConverters._
-import Bindings._
+import service.ServiceBindings._
 import utils.ColumnUtils.{FloatType, StringType}
+import utils.DataFeeder._
 
-import scala.concurrent.duration.DurationInt
+import scala.concurrent.duration.{DurationInt, FiniteDuration}
 import scala.language.postfixOps
 import scala.util.Try
 
-object Data {
+
+trait DataFeeder {
+  def getRealtime(symbol: String): Future[Map[String, Any]] =
+    getHtmlText(
+      REALTIME_PATH,
+      getRealtimeQuery(symbol)
+    ).map(getMap(_))
+  def getDaily(symbol: String): Future[Seq[Table]] =
+    getHtmlText(
+      HISTORY_PATH,
+      getHistoryQuery(symbol)
+    ).map(getTable(_))
+}
+
+private[utils] object DataFeeder {
 
   val HOSTNAME = "www.settrade.com"
   val REALTIME_PATH = "/C04_01_stock_quote_p1.jsp"
   val HISTORY_PATH = "/C04_02_stock_historical_p1.jsp"
   val HEADERS: Seq[HttpHeader] = Map("cookie" -> "IPO_Language=English")
-    .foldLeft(Seq.empty[HttpHeader]) { case (seq, (key, value)) => HttpHeader.parse(key, value) match {
-      case ParsingResult.Ok(h, _) => seq :+ h
-      case _ => seq
+    .foldLeft(Seq.empty[HttpHeader]) {
+      case (seq, (key, value)) => HttpHeader.parse(key, value) match {
+        case ParsingResult.Ok(h, _) => seq :+ h
+        case _ => seq
+      }
     }
-    }
+  val ENTITY_TIMEOUT: FiniteDuration = 5 second
 
   def getRealtimeQuery(symbol: String) = s"txtSymbol=${symbol}"
 
@@ -39,17 +56,17 @@ object Data {
     val responseFuture = Http().singleRequest(request)
     for {
       response <- responseFuture
-        strict <- response.entity.toStrict(1 second)
+        strict <- response.entity.toStrict(ENTITY_TIMEOUT)
     } yield {
       strict.data.decodeString("UTF-8")
     }
   }
 
-  def getMap(htmlText: String) = {
+  def getMap(htmlText: String, nthTables: Set[Int]= Set.empty[Int]): Map[String, Any] = {
     val document = Jsoup.parse(htmlText)
     val each = document.select("table.table tr")
     Range(0, each.size)
-      .foldLeft(Seq.empty[Seq[String]]) { case (rSeq, idx) => rSeq :+ each
+      .foldLeft(Seq.empty[Seq[String]]) { case (rSeq, idx) if nthTables.isEmpty || nthTables.contains(idx)=> rSeq :+ each
         .get(idx)
         .select("td")
         .eachText()
@@ -61,11 +78,11 @@ object Data {
 
   }
 
-  def getTable(htmlText: String) = {
+  def getTable(htmlText: String, nthTables: Set[Int] = Set.empty[Int]): Seq[Table] = {
     val document = Jsoup.parse(htmlText)
     val t = document.select("table.table")
     Range(0, t.size).foldLeft(Seq.empty[Table]) {
-      case (tSeq, tableIdx) => {
+      case (tSeq, tableIdx) if nthTables.isEmpty || nthTables.contains(tableIdx) =>
         val table = t.get(tableIdx)
         val columnNames = table.select("th").eachText().asScala.toSeq
         val rawRows = table.select("tr")
@@ -78,8 +95,8 @@ object Data {
             .toSeq
           if (row.nonEmpty) rSeq :+ row else rSeq
         }
-        tSeq :+ Table(ColumnUtils.getColumns(Some(columnNames), rows, Map("Date" -> StringType), FloatType))
-      }
+        tSeq :+ Table(ColumnUtils.getColumns(columnNames, rows, Map("Date" -> StringType), FloatType))
+
     }
   }
 }
